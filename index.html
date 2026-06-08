@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Starry — Tu diario de sueños bajo las estrellas. Registra, organiza y comparte tus sueños.">
+  <title>Starry — Diario de sueños</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-deep: #0A0014;
+      --bg-soft: #120525;
+      --accent-blue: #4A00E0;
+      --accent-purple: #8B00FF;
+      --accent-pink: #E040FB;
+      --text-primary: #FFFFFF;
+      --text-secondary: #B8B0C8;
+      --text-muted: #6B6280;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      padding:
+        env(safe-area-inset-top, 0)
+        env(safe-area-inset-right, 0)
+        env(safe-area-inset-bottom, 0)
+        env(safe-area-inset-left, 0);
+    }
+
+    /* Fondo */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(74, 0, 224, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(139, 0, 255, 0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 10% 80%, rgba(224, 64, 251, 0.08) 0%, transparent 50%),
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-soft) 50%, var(--bg-deep) 100%);
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: twinkle var(--duration, 4s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+      opacity: 0;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; transform: scale(0.8); }
+      50% { opacity: var(--peak, 0.6); transform: scale(1); }
+    }
+
+    /* Layout */
+    main {
+      position: relative;
+      z-index: 2;
+    }
+
+    .section {
+      position: relative;
+      min-height: 100dvh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding:
+        clamp(1.5rem, 6vh, 3rem)
+        clamp(1rem, 5vw, 2rem)
+        clamp(1.5rem, 6vh, 3rem);
+    }
+
+    .section-hero {
+      justify-content: center;
+    }
+
+    .hero {
+      max-width: min(560px, 100%);
+      width: 100%;
+      text-align: center;
+      animation: fadeUp 0.9s ease-out both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-devices {
+      justify-content: center;
+      padding-bottom: clamp(1rem, 3vh, 1.5rem);
+    }
+
+    .section-devices .devices-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    /* Dispositivos */
+    .devices {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: clamp(0.75rem, 3vw, 1.5rem);
+      padding: 0 0.5rem;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: clamp(1.25rem, 4vh, 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      opacity: 0.6;
+      animation: bounceHint 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .scroll-hint svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0.7;
+    }
+
+    @keyframes bounceHint {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    .device {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Laptop */
+    .device--laptop {
+      width: clamp(240px, 55vw, 420px);
+    }
+
+    .laptop-screen {
+      background: linear-gradient(145deg, #1a1030, #0d0618);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px 10px 2px 2px;
+      padding: 6px;
+      box-shadow:
+        0 0 0 1px rgba(139, 0, 255, 0.15),
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(74, 0, 224, 0.12);
+    }
+
+    .laptop-bezel {
+      aspect-ratio: 1920 / 990;
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--bg-deep);
+    }
+
+    .laptop-base {
+      height: 10px;
+      margin: 0 auto;
+      width: 108%;
+      margin-left: -4%;
+      background: linear-gradient(180deg, #2a2040 0%, #1a1430 100%);
+      border-radius: 0 0 8px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: none;
+      position: relative;
+    }
+
+    .laptop-base::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 2px;
+    }
+
+    /* Teléfono */
+    .device--phone {
+      width: clamp(110px, 26vw, 165px);
+    }
+
+    .phone-frame {
+      background: linear-gradient(160deg, #2e2548 0%, #1a1430 50%, #120e22 100%);
+      border: 2px solid rgba(255, 255, 255, 0.14);
+      border-radius: 22px;
+      padding: 7px 5px;
+      box-shadow:
+        0 0 0 1px rgba(139, 0, 255, 0.2),
+        0 16px 48px rgba(0, 0, 0, 0.55),
+        0 0 24px rgba(139, 0, 255, 0.15);
+    }
+
+    .phone-notch {
+      width: 36%;
+      height: 5px;
+      background: #0a0614;
+      border-radius: 4px;
+      margin: 0 auto 5px;
+    }
+
+    .phone-screen {
+      aspect-ratio: 9 / 19;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--bg-deep);
+    }
+
+    /* Capturas en marcos */
+    .screen-frame {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(74, 0, 224, 0.15) 0%, transparent 55%),
+        var(--bg-deep);
+    }
+
+    .screen-shot {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .screen-shot--desktop {
+      object-fit: contain;
+      object-position: center;
+    }
+
+    .screen-frame.is-empty::after {
+      content: attr(data-label);
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+      font-size: clamp(0.55rem, 1.5vw, 0.7rem);
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* Carrusel */
+    .carousel {
+      width: 100%;
+      max-width: 920px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(0.875rem, 2.5vw, 1.25rem);
+      animation: fadeUp 0.9s ease-out 0.15s both;
+    }
+
+    .carousel__title {
+      font-size: clamp(1.5rem, 5.5vw, 2.25rem);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #fff 30%, #C4A8FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      padding: 0 2.5rem;
+    }
+
+    .carousel__stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(0.35rem, 2vw, 1rem);
+      width: 100%;
+    }
+
+    .carousel__arrow {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .carousel__arrow svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    @media (hover: hover) {
+      .carousel__arrow:hover {
+        background: rgba(139, 0, 255, 0.2);
+        border-color: rgba(139, 0, 255, 0.35);
+        transform: scale(1.05);
+      }
+    }
+
+    .carousel__arrow:active {
+      transform: scale(0.95);
+    }
+
+    .carousel__devices {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      justify-content: center;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .carousel__desc {
+      font-size: clamp(0.875rem, 2.5vw, 1rem);
+      font-weight: 300;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.65;
+      max-width: 480px;
+      padding: 0 2.5rem;
+      min-height: 2.75em;
+    }
+
+    .carousel__dots {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .carousel__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .carousel__dot--active {
+      background: var(--accent-purple);
+      box-shadow: 0 0 8px rgba(139, 0, 255, 0.5);
+      transform: scale(1.15);
+    }
+
+    .carousel__title,
+    .carousel__desc,
+    .carousel__devices {
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      will-change: opacity, transform;
+    }
+
+    .carousel.is-exiting .carousel__title,
+    .carousel.is-exiting .carousel__desc,
+    .carousel.is-exiting .carousel__devices {
+      opacity: 0;
+      transform: translateX(var(--slide-exit, 0));
+    }
+
+    .carousel.is-entering .carousel__title,
+    .carousel.is-entering .carousel__desc,
+    .carousel.is-entering .carousel__devices {
+      opacity: 0;
+      transform: translateX(var(--slide-enter, 0));
+    }
+
+    /* Tecnologías */
+    .section-tech {
+      justify-content: flex-start;
+      gap: 0;
+      padding-bottom: clamp(1.25rem, 4vh, 2rem);
+    }
+
+    .section-tech__content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      gap: clamp(2rem, 5vh, 3.5rem);
+    }
+
+    .tech-title {
+      font-size: clamp(1.5rem, 5.5vw, 2.25rem);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #fff 30%, #C4A8FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      padding: 0 1.5rem;
+    }
+
+    .tech-marquee {
+      width: 100%;
+      max-width: 1100px;
+      overflow: hidden;
+      mask-image: linear-gradient(
+        90deg,
+        transparent,
+        #000 8%,
+        #000 92%,
+        transparent
+      );
+      -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent,
+        #000 8%,
+        #000 92%,
+        transparent
+      );
+    }
+
+    .tech-marquee__track {
+      display: flex;
+      align-items: center;
+      gap: clamp(1.5rem, 4vw, 3rem);
+      width: max-content;
+      animation: techMarquee 28s linear infinite;
+    }
+
+    .tech-marquee:hover .tech-marquee__track {
+      animation-play-state: paused;
+    }
+
+    @keyframes techMarquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .tech-logo-wrap {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: clamp(100px, 20vw, 150px);
+      min-width: clamp(200px, 38vw, 300px);
+      padding: clamp(1rem, 2.5vw, 1.5rem) clamp(1.25rem, 3.5vw, 2.25rem);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    .tech-logo {
+      max-height: 100%;
+      max-width: clamp(170px, 34vw, 260px);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .tech-logo--render {
+      filter: brightness(1.05);
+    }
+
+    /* Logo */
+    .logo {
+      width: clamp(200px, 78vw, 360px);
+      margin: 0 auto;
+      animation: logoGlow 3.5s ease-in-out infinite;
+    }
+
+    @keyframes logoGlow {
+      0%, 100% {
+        filter:
+          drop-shadow(0 0 12px rgba(139, 0, 255, 0.25))
+          drop-shadow(0 0 24px rgba(74, 0, 224, 0.15));
+      }
+      35% {
+        filter:
+          drop-shadow(0 0 22px rgba(139, 0, 255, 0.55))
+          drop-shadow(0 0 38px rgba(224, 64, 251, 0.35))
+          drop-shadow(0 0 52px rgba(74, 0, 224, 0.2));
+      }
+      65% {
+        filter:
+          drop-shadow(0 0 16px rgba(139, 0, 255, 0.35))
+          drop-shadow(0 0 28px rgba(139, 0, 255, 0.2));
+      }
+    }
+
+    .logo img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Tipografía */
+    .tagline {
+      font-size: clamp(0.95rem, 2.8vw, 1.2rem);
+      font-weight: 400;
+      color: var(--text-secondary);
+      margin-top: clamp(-1.25rem, -5vw, -1.75rem);
+      margin-bottom: clamp(0.875rem, 3vw, 1.25rem);
+      letter-spacing: 0.01em;
+      padding: 0 0.25rem;
+    }
+
+    .description {
+      font-size: clamp(0.875rem, 2.4vw, 1.05rem);
+      font-weight: 300;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      margin-bottom: clamp(1.75rem, 5vw, 2.5rem);
+      max-width: min(440px, 92%);
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0 0.25rem;
+    }
+
+    /* Botones */
+    .downloads {
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      width: 100%;
+      max-width: 320px;
+      min-height: 48px;
+      padding: 0.875rem 1.25rem;
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: clamp(0.875rem, 2.5vw, 0.95rem);
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    @media (hover: hover) {
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(74, 0, 224, 0.35);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 8px 32px rgba(139, 0, 255, 0.45);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .ios-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    /* Footer */
+    footer {
+      flex-shrink: 0;
+      width: 100%;
+      margin-top: auto;
+      text-align: center;
+      padding-top: clamp(1.5rem, 4vh, 2.5rem);
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      font-size: clamp(0.75rem, 2vw, 0.8rem);
+      color: var(--text-muted);
+    }
+
+    /* Móvil pequeño */
+    @media (max-width: 380px) {
+      .logo {
+        width: min(92vw, 280px);
+      }
+
+      .downloads {
+        gap: 0.75rem;
+      }
+
+      .btn {
+        max-width: 100%;
+        padding-inline: 1rem;
+      }
+    }
+
+    /* Tablet en adelante */
+    @media (min-width: 600px) {
+      .downloads {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .btn {
+        width: auto;
+        flex: 1 1 220px;
+        max-width: 280px;
+      }
+    }
+
+    /* Desktop */
+    @media (min-width: 1024px) {
+      .hero {
+        max-width: 640px;
+      }
+
+      .logo {
+        width: 360px;
+      }
+
+      .devices {
+        gap: 2.5rem;
+      }
+
+      .device--laptop {
+        width: 440px;
+      }
+
+      .device--phone {
+        width: 170px;
+      }
+    }
+
+    /* Landscape en móvil */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .section {
+        padding-block: 1rem;
+      }
+
+      .scroll-hint {
+        display: none;
+      }
+
+      .logo {
+        width: clamp(160px, 40vw, 260px);
+      }
+
+      .tagline {
+        margin-top: clamp(-0.75rem, -3vw, -1.25rem);
+        margin-bottom: 0.5rem;
+      }
+
+      .description {
+        margin-bottom: 1.25rem;
+      }
+
+      .carousel__devices .devices {
+        transform: scale(0.92);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .carousel__arrow {
+        display: none;
+      }
+
+      .carousel__stage {
+        gap: 0;
+      }
+
+      .carousel__devices {
+        touch-action: pan-y;
+      }
+
+      .carousel__title {
+        font-size: clamp(1.85rem, 7vw, 2.2rem);
+      }
+
+      .tech-title {
+        font-size: clamp(1.85rem, 7vw, 2.2rem);
+      }
+
+      .tech-logo-wrap {
+        height: clamp(120px, 28vw, 165px);
+        min-width: clamp(240px, 52vw, 320px);
+        padding: clamp(1.1rem, 3vw, 1.5rem) clamp(1.5rem, 4vw, 2.25rem);
+      }
+
+      .tech-logo {
+        max-width: clamp(210px, 46vw, 300px);
+      }
+
+      .tech-marquee__track {
+        gap: clamp(1.75rem, 5vw, 2.5rem);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .carousel__title {
+        font-size: clamp(2rem, 8.5vw, 2.4rem);
+      }
+
+      .tech-title {
+        font-size: clamp(2rem, 8.5vw, 2.4rem);
+      }
+
+      .tech-logo-wrap {
+        height: clamp(135px, 34vw, 185px);
+        min-width: clamp(270px, 62vw, 360px);
+      }
+
+      .tech-logo {
+        max-width: clamp(235px, 54vw, 330px);
+      }
+
+      .tech-marquee {
+        mask-image: linear-gradient(
+          90deg,
+          transparent,
+          #000 4%,
+          #000 96%,
+          transparent
+        );
+        -webkit-mask-image: linear-gradient(
+          90deg,
+          transparent,
+          #000 4%,
+          #000 96%,
+          transparent
+        );
+      }
+
+      .devices {
+        flex-direction: row;
+        align-items: flex-end;
+        flex-wrap: nowrap;
+        gap: clamp(0.625rem, 2.5vw, 1.25rem);
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .device--laptop {
+        width: clamp(190px, 58vw, 300px);
+      }
+
+      .device--phone {
+        width: clamp(95px, 25vw, 145px);
+      }
+    }
+
+    @media (max-width: 380px) {
+      .device--laptop {
+        width: clamp(175px, 56vw, 260px);
+      }
+
+      .device--phone {
+        width: clamp(88px, 24vw, 130px);
+      }
+
+      .carousel__title {
+        font-size: clamp(2.1rem, 9vw, 2.5rem);
+        padding-inline: 1.75rem;
+      }
+
+      .tech-title {
+        font-size: clamp(2.1rem, 9vw, 2.5rem);
+      }
+
+      .tech-logo-wrap {
+        height: clamp(145px, 38vw, 195px);
+        min-width: clamp(285px, 68vw, 380px);
+      }
+
+      .tech-logo {
+        max-width: clamp(250px, 58vw, 340px);
+      }
+
+      .carousel__desc {
+        padding-inline: 1.75rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-snap-type: none;
+      }
+
+      .hero,
+      .scroll-hint,
+      .carousel,
+      .carousel__title,
+      .carousel__desc,
+      .carousel__devices,
+      .tech-marquee__track {
+        animation: none;
+        transition: none;
+      }
+
+      .logo {
+        animation: none;
+        filter: drop-shadow(0 0 24px rgba(139, 0, 255, 0.35));
+      }
+
+      .star {
+        animation: none;
+        opacity: 0.3;
+      }
+
+      .btn {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="stars" id="stars" aria-hidden="true"></div>
+
+  <main>
+    <section class="section section-hero">
+      <div class="hero">
+        <div class="logo">
+          <img src="assets/logo.png" alt="Starry" width="360" height="120">
+        </div>
+
+        <p class="tagline">Tu diario de sueños bajo las estrellas</p>
+        <p class="description">
+          Starry te permite registrar tus sueños, organizarlos en un calendario
+          y compartirlos con una comunidad de soñadores.
+        </p>
+
+        <div class="downloads">
+          <a class="btn btn-primary" href="https://github.com/aldoayx-png/Starry/releases/download/v1.0.0/Starry-Setup.exe" download>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M3 4.5L10.5 3.5V11.5H3V4.5zM11.5 3.3L21 2V11.5H11.5V3.3zM3 12.5H10.5V20.5L3 19.5V12.5zM11.5 12.5H21V22L11.5 20.7V12.5z"/>
+            </svg>
+            Descargar para Windows
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/aldoayx-png/Starry/releases/download/v1.0.0/Starry-Android.apk" download>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M17.6 9.48l1.84-3.18c.16-.28.04-.62-.26-.78a.57.57 0 0 0-.78.26l-1.88 3.24a11.43 11.43 0 0 0-8.94 0L5.7 5.78a.57.57 0 0 0-.78-.26c-.3.16-.42.5-.26.78L6.4 9.48A10.78 10.78 0 0 0 1 18h22a10.78 10.78 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/>
+            </svg>
+            Descargar para Android
+          </a>
+        </div>
+
+        <p class="meta">Versión v1.0.0</p>
+        <p class="ios-note">iOS — Próximamente</p>
+      </div>
+
+      <div class="scroll-hint" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12l7 7 7-7"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section section-devices" id="preview">
+      <div class="devices-wrap">
+        <div class="carousel" id="carousel">
+          <h2 class="carousel__title" id="carousel-title">Inicio</h2>
+
+          <div class="carousel__stage">
+            <button type="button" class="carousel__arrow carousel__arrow--prev" id="carousel-prev" aria-label="Pantalla anterior">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+
+            <div class="carousel__devices">
+              <div class="devices">
+                <div class="device device--laptop">
+                  <div class="laptop-screen">
+                    <div class="laptop-bezel screen-frame" id="frame-desktop" data-label="Escritorio">
+                      <img class="screen-shot screen-shot--desktop" id="shot-desktop" src="assets/inicio_pc.png" alt="Inicio en escritorio">
+                    </div>
+                  </div>
+                  <div class="laptop-base"></div>
+                </div>
+
+                <div class="device device--phone">
+                  <div class="phone-frame">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen screen-frame" id="frame-mobile" data-label="Móvil">
+                      <img class="screen-shot" id="shot-mobile" src="assets/inicio_movil.jpeg" alt="Inicio en móvil">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="carousel__arrow carousel__arrow--next" id="carousel-next" aria-label="Pantalla siguiente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          </div>
+
+          <p class="carousel__desc" id="carousel-desc">Registra y guarda todos tus sueños en un solo lugar.</p>
+          <div class="carousel__dots" id="carousel-dots" role="tablist" aria-label="Pantallas de la app"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tech" id="tech">
+      <div class="section-tech__content">
+        <h2 class="tech-title">Tecnologías utilizadas</h2>
+
+        <div class="tech-marquee" aria-label="Tecnologías utilizadas en Starry">
+          <div class="tech-marquee__track">
+            <div class="tech-logo-wrap">
+              <img class="tech-logo" src="assets/flutter.png" alt="Flutter" width="240" height="72">
+            </div>
+            <div class="tech-logo-wrap">
+              <img class="tech-logo" src="assets/3b1463ab-b414-43e0-be80-5925753301b1.png" alt="Node.js y Express" width="240" height="120">
+            </div>
+            <div class="tech-logo-wrap">
+              <img class="tech-logo" src="assets/images.png" alt="MongoDB" width="240" height="72">
+            </div>
+            <div class="tech-logo-wrap">
+              <img class="tech-logo tech-logo--render" src="assets/Render logo - White.png" alt="Render" width="240" height="72">
+            </div>
+            <div class="tech-logo-wrap" aria-hidden="true">
+              <img class="tech-logo" src="assets/flutter.png" alt="" width="240" height="72">
+            </div>
+            <div class="tech-logo-wrap" aria-hidden="true">
+              <img class="tech-logo" src="assets/3b1463ab-b414-43e0-be80-5925753301b1.png" alt="" width="240" height="120">
+            </div>
+            <div class="tech-logo-wrap" aria-hidden="true">
+              <img class="tech-logo" src="assets/images.png" alt="" width="240" height="72">
+            </div>
+            <div class="tech-logo-wrap" aria-hidden="true">
+              <img class="tech-logo tech-logo--render" src="assets/Render logo - White.png" alt="" width="240" height="72">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>&copy; 2026 Starry</p>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var container = document.getElementById('stars');
+
+      function starCount() {
+        var w = window.innerWidth;
+        if (w < 380) return 50;
+        if (w < 768) return 80;
+        return 120;
+      }
+
+      function createStars() {
+        container.innerHTML = '';
+        for (var i = 0; i < starCount(); i++) {
+          var star = document.createElement('span');
+          star.className = 'star';
+          var size = Math.random() * 2 + 0.5;
+          star.style.cssText =
+            'width:' + size + 'px;height:' + size + 'px;' +
+            'left:' + (Math.random() * 100) + '%;' +
+            'top:' + (Math.random() * 100) + '%;' +
+            '--duration:' + (2 + Math.random() * 4) + 's;' +
+            '--delay:' + (Math.random() * 5) + 's;' +
+            '--peak:' + (0.2 + Math.random() * 0.5) + ';';
+          container.appendChild(star);
+        }
+      }
+
+      var resizeTimer;
+      createStars();
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(createStars, 200);
+      });
+    })();
+
+    (function () {
+      var slides = [
+        {
+          title: 'Inicio',
+          description: 'Registra y guarda todos tus sueños en un solo lugar.',
+          slug: 'inicio'
+        },
+        {
+          title: 'Registro de sueños',
+          description: 'Anota tus sueños fácilmente con título, descripción y detalles.',
+          slug: 'registro'
+        },
+        {
+          title: 'Calendario',
+          description: 'Revisa tus sueños organizados por fecha.',
+          slug: 'calendario'
+        },
+        {
+          title: 'Detalles del sueño',
+          description: 'Consulta el contenido completo de cada sueño con sus detalles.',
+          slug: 'detalles'
+        },
+        {
+          title: 'Foro',
+          description: 'Comparte tus sueños y descubre los de otros usuarios.',
+          slug: 'foro'
+        },
+        {
+          title: 'Perfil',
+          description: 'Revisa tus estadisticas, etiquetas y tu estado de animo semanal a base de tu sueños.',
+          slug: 'perfil'
+        }
+      ];
+
+      var current = 0;
+      var transitioning = false;
+      var carousel = document.getElementById('carousel');
+      var titleEl = document.getElementById('carousel-title');
+      var descEl = document.getElementById('carousel-desc');
+      var shotDesktop = document.getElementById('shot-desktop');
+      var shotMobile = document.getElementById('shot-mobile');
+      var frameDesktop = document.getElementById('frame-desktop');
+      var frameMobile = document.getElementById('frame-mobile');
+      var dotsContainer = document.getElementById('carousel-dots');
+      var prevBtn = document.getElementById('carousel-prev');
+      var nextBtn = document.getElementById('carousel-next');
+
+      function imagePath(slug, type) {
+        if (type === 'desktop') return 'assets/' + slug + '_pc.png';
+        return 'assets/' + slug + '_movil.jpeg';
+      }
+
+      function setFrameState(img, frame) {
+        if (!img.complete || img.naturalWidth === 0) {
+          frame.classList.add('is-empty');
+        } else {
+          frame.classList.remove('is-empty');
+        }
+      }
+
+      function bindImageFallback(img, frame) {
+        img.addEventListener('load', function () {
+          setFrameState(img, frame);
+        });
+        img.addEventListener('error', function () {
+          frame.classList.add('is-empty');
+        });
+        setFrameState(img, frame);
+      }
+
+      bindImageFallback(shotDesktop, frameDesktop);
+      bindImageFallback(shotMobile, frameMobile);
+
+      function updateDots() {
+        var dots = dotsContainer.querySelectorAll('.carousel__dot');
+        for (var i = 0; i < dots.length; i++) {
+          dots[i].classList.toggle('carousel__dot--active', i === current);
+          dots[i].setAttribute('aria-selected', i === current ? 'true' : 'false');
+        }
+      }
+
+      function renderSlide(index) {
+        var slide = slides[index];
+        titleEl.textContent = slide.title;
+        descEl.textContent = slide.description;
+        shotDesktop.src = imagePath(slide.slug, 'desktop');
+        shotDesktop.alt = slide.title + ' en escritorio';
+        shotMobile.src = imagePath(slide.slug, 'mobile');
+        shotMobile.alt = slide.title + ' en móvil';
+        frameDesktop.setAttribute('data-label', slide.title);
+        frameMobile.setAttribute('data-label', slide.title);
+        updateDots();
+      }
+
+      slides.forEach(function (slide, index) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'carousel__dot' + (index === 0 ? ' carousel__dot--active' : '');
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', slide.title);
+        dot.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
+        dot.addEventListener('click', function () {
+          goTo(index);
+        });
+        dotsContainer.appendChild(dot);
+      });
+
+      function slideOffset() {
+        return window.innerWidth < 600 ? 48 : 72;
+      }
+
+      function goTo(index, direction) {
+        if (transitioning || index === current) return;
+        if (index < 0) index = slides.length - 1;
+        if (index >= slides.length) index = 0;
+
+        var offset = slideOffset();
+        var dir = direction === 'prev' ? -1 : direction === 'next' ? 1 : (index > current ? 1 : -1);
+
+        transitioning = true;
+        carousel.style.setProperty('--slide-exit', (dir * -offset) + 'px');
+        carousel.style.setProperty('--slide-enter', (dir * offset) + 'px');
+        carousel.classList.remove('is-entering');
+        carousel.classList.add('is-exiting');
+
+        setTimeout(function () {
+          current = index;
+          renderSlide(current);
+          carousel.classList.remove('is-exiting');
+          carousel.classList.add('is-entering');
+          void carousel.offsetWidth;
+
+          setTimeout(function () {
+            carousel.classList.remove('is-entering');
+            transitioning = false;
+          }, 40);
+        }, 350);
+      }
+
+      prevBtn.addEventListener('click', function () {
+        goTo(current - 1, 'prev');
+      });
+
+      nextBtn.addEventListener('click', function () {
+        goTo(current + 1, 'next');
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (!document.getElementById('preview')) return;
+        var rect = document.getElementById('preview').getBoundingClientRect();
+        var inView = rect.top < window.innerHeight && rect.bottom > 0;
+        if (!inView) return;
+        if (e.key === 'ArrowLeft') goTo(current - 1, 'prev');
+        if (e.key === 'ArrowRight') goTo(current + 1, 'next');
+      });
+
+      var touchStartX = 0;
+      carousel.addEventListener('touchstart', function (e) {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      carousel.addEventListener('touchend', function (e) {
+        var diff = e.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(diff) < 40) return;
+        if (diff < 0) goTo(current + 1, 'next');
+        else goTo(current - 1, 'prev');
+      }, { passive: true });
+    })();
+  </script>
+</body>
+</html>
