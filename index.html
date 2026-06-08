@@ -98,6 +98,82 @@
         clamp(1.5rem, 6vh, 3rem)
         clamp(1rem, 5vw, 2rem)
         clamp(1.5rem, 6vh, 3rem);
+      overflow: hidden;
+      perspective: 1200px;
+    }
+
+    .section-content {
+      width: 100%;
+      opacity: 0;
+      transform: translateY(110px) scale(0.86) rotateX(10deg);
+      transform-origin: center center;
+      filter: blur(14px) brightness(0.75);
+      transition:
+        opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 1.05s cubic-bezier(0.34, 1.55, 0.64, 1),
+        filter 0.9s ease;
+      will-change: opacity, transform, filter;
+    }
+
+    .section.is-active .section-content {
+      opacity: 1;
+      transform: translateY(0) scale(1) rotateX(0deg);
+      filter: blur(0) brightness(1);
+    }
+
+    .section.is-above .section-content {
+      opacity: 0;
+      transform: translateY(-90px) scale(1.08) rotateX(-8deg);
+      filter: blur(12px) brightness(0.85);
+    }
+
+    .section.is-below .section-content {
+      opacity: 0;
+      transform: translateY(110px) scale(0.84) rotateX(10deg);
+      filter: blur(14px) brightness(0.75);
+    }
+
+    .section.is-active .hero > *:not(.logo) {
+      animation: sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+    }
+
+    .section.is-active .hero > .tagline { animation-delay: 0.16s; }
+    .section.is-active .hero > .description { animation-delay: 0.24s; }
+    .section.is-active .hero > .downloads { animation-delay: 0.32s; }
+    .section.is-active .hero > .meta { animation-delay: 0.4s; }
+    .section.is-active .hero > .ios-note { animation-delay: 0.48s; }
+
+    .section.is-active .hero .logo {
+      animation:
+        sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) 0.08s both,
+        logoGlow 3.5s ease-in-out 1s infinite;
+    }
+
+    .section.is-active .carousel > * {
+      animation: sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+    }
+
+    .section.is-active .carousel > *:nth-child(1) { animation-delay: 0.06s; }
+    .section.is-active .carousel > *:nth-child(2) { animation-delay: 0.14s; }
+    .section.is-active .carousel > *:nth-child(3) { animation-delay: 0.22s; }
+    .section.is-active .carousel > *:nth-child(4) { animation-delay: 0.3s; }
+
+    .section.is-active .section-tech__content > * {
+      animation: sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+    }
+
+    .section.is-active .section-tech__content > *:nth-child(1) { animation-delay: 0.08s; }
+    .section.is-active .section-tech__content > *:nth-child(2) { animation-delay: 0.2s; }
+
+    @keyframes sectionReveal {
+      from {
+        opacity: 0;
+        transform: translateY(36px) scale(0.94);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     .section-hero {
@@ -108,12 +184,6 @@
       max-width: min(560px, 100%);
       width: 100%;
       text-align: center;
-      animation: fadeUp 0.9s ease-out both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .section-devices {
@@ -142,16 +212,27 @@
       position: absolute;
       bottom: clamp(1.25rem, 4vh, 2rem);
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(24px);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 0.35rem;
       color: var(--text-muted);
       font-size: 0.7rem;
-      opacity: 0.6;
+      opacity: 0;
+      transition:
+        opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 1s cubic-bezier(0.34, 1.55, 0.64, 1);
       animation: bounceHint 2s ease-in-out infinite;
+      animation-play-state: paused;
       pointer-events: none;
+    }
+
+    .section-hero.is-active .scroll-hint {
+      opacity: 0.6;
+      transform: translateX(-50%) translateY(0);
+      animation-play-state: running;
+      transition-delay: 0.55s;
     }
 
     .scroll-hint svg {
@@ -292,7 +373,6 @@
       flex-direction: column;
       align-items: center;
       gap: clamp(0.875rem, 2.5vw, 1.25rem);
-      animation: fadeUp 0.9s ease-out 0.15s both;
     }
 
     .carousel__title {
@@ -501,8 +581,8 @@
       display: block;
     }
 
-    .tech-logo--render {
-      filter: brightness(1.05);
+    .section-tech footer.section-content {
+      transition-delay: 0.28s;
     }
 
     /* Logo */
@@ -865,9 +945,20 @@
       .carousel__title,
       .carousel__desc,
       .carousel__devices,
-      .tech-marquee__track {
+      .tech-marquee__track,
+      .section-content,
+      .section.is-active .hero > *,
+      .section.is-active .carousel > *,
+      .section.is-active .section-tech__content > * {
         animation: none;
         transition: none;
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+      }
+
+      .section-hero.is-active .scroll-hint {
+        opacity: 0.6;
       }
 
       .logo {
@@ -891,8 +982,8 @@
   <div class="stars" id="stars" aria-hidden="true"></div>
 
   <main>
-    <section class="section section-hero">
-      <div class="hero">
+    <section class="section section-hero is-active">
+      <div class="hero section-content">
         <div class="logo">
           <img src="assets/logo.png" alt="Starry" width="360" height="120">
         </div>
@@ -930,7 +1021,7 @@
     </section>
 
     <section class="section section-devices" id="preview">
-      <div class="devices-wrap">
+      <div class="devices-wrap section-content">
         <div class="carousel" id="carousel">
           <h2 class="carousel__title" id="carousel-title">Inicio</h2>
 
@@ -977,7 +1068,7 @@
     </section>
 
     <section class="section section-tech" id="tech">
-      <div class="section-tech__content">
+      <div class="section-tech__content section-content">
         <h2 class="tech-title">Tecnologías utilizadas</h2>
 
         <div class="tech-marquee" aria-label="Tecnologías utilizadas en Starry">
@@ -1010,13 +1101,65 @@
         </div>
       </div>
 
-      <footer>
+      <footer class="section-content">
         <p>&copy; 2026 Starry</p>
       </footer>
     </section>
   </main>
 
   <script>
+    (function () {
+      var sections = Array.prototype.slice.call(document.querySelectorAll('.section'));
+      if (!sections.length) return;
+
+      var ticking = false;
+
+      function updateSections() {
+        var viewportMid = window.innerHeight * 0.5;
+        var active = sections[0];
+        var bestDist = Infinity;
+
+        sections.forEach(function (section) {
+          var rect = section.getBoundingClientRect();
+          var sectionMid = rect.top + rect.height * 0.5;
+          var dist = Math.abs(sectionMid - viewportMid);
+          if (dist < bestDist) {
+            bestDist = dist;
+            active = section;
+          }
+        });
+
+        sections.forEach(function (section) {
+          section.classList.remove('is-active', 'is-above', 'is-below');
+
+          if (section === active) {
+            section.classList.add('is-active');
+            return;
+          }
+
+          var rect = section.getBoundingClientRect();
+          if (rect.top + rect.height * 0.5 < viewportMid) {
+            section.classList.add('is-above');
+          } else {
+            section.classList.add('is-below');
+          }
+        });
+      }
+
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+          updateSections();
+          ticking = false;
+        });
+      }
+
+      updateSections();
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', updateSections);
+    })();
+
     (function () {
       var container = document.getElementById('stars');
 
