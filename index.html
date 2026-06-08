@@ -149,14 +149,13 @@
         logoGlow 3.5s ease-in-out 1s infinite;
     }
 
-    .section.is-active .carousel > * {
-      animation: sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+    .section.is-active .carousel > .carousel__stage {
+      animation: sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) 0.12s both;
     }
 
-    .section.is-active .carousel > *:nth-child(1) { animation-delay: 0.06s; }
-    .section.is-active .carousel > *:nth-child(2) { animation-delay: 0.14s; }
-    .section.is-active .carousel > *:nth-child(3) { animation-delay: 0.22s; }
-    .section.is-active .carousel > *:nth-child(4) { animation-delay: 0.3s; }
+    .section.is-active .carousel > .carousel__dots {
+      animation: sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) 0.28s both;
+    }
 
     .section.is-active .section-tech__content > * {
       animation: sectionReveal 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) both;
@@ -474,13 +473,16 @@
     .carousel__title,
     .carousel__desc,
     .carousel__devices {
-      transition: opacity 0.35s ease, transform 0.35s ease;
+      transition:
+        opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       will-change: opacity, transform;
     }
 
     .carousel.is-exiting .carousel__title,
     .carousel.is-exiting .carousel__desc,
     .carousel.is-exiting .carousel__devices {
+      animation: none !important;
       opacity: 0;
       transform: translateX(var(--slide-exit, 0));
     }
@@ -488,6 +490,7 @@
     .carousel.is-entering .carousel__title,
     .carousel.is-entering .carousel__desc,
     .carousel.is-entering .carousel__devices {
+      animation: none !important;
       opacity: 0;
       transform: translateX(var(--slide-enter, 0));
     }
@@ -948,7 +951,8 @@
       .tech-marquee__track,
       .section-content,
       .section.is-active .hero > *,
-      .section.is-active .carousel > *,
+      .section.is-active .carousel > .carousel__stage,
+      .section.is-active .carousel > .carousel__dots {
       .section.is-active .section-tech__content > * {
         animation: none;
         transition: none;
